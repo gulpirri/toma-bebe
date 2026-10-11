@@ -4,23 +4,30 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tomas">
 <title>Tomas del bebé</title>
 <style>
-:root{--bg:#fdf6f0;--card:#fff;--tx:#2b2430;--mut:#7a707f;--ok:#2e9e6b;--no:#d9534f;--ac:#7b5ea7;--bd:#eadfd6;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17141b;--card:#241f2a;--tx:#f1ecf4;--mut:#a99fb0;--bd:#372f40}}
-:root[data-theme="dark"]{--bg:#17141b;--card:#241f2a;--tx:#f1ecf4;--mut:#a99fb0;--bd:#372f40}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{--bg:#fdf6f0;--card:#fff;--tx:#2b2430;--mut:#7a707f;--ok:#2e9e6b;--no:#d9534f;--ac:#7b5ea7;--bd:#eadfd6}
+@media (prefers-color-scheme:dark){:root{--bg:#17141b;--card:#241f2a;--tx:#f1ecf4;--mut:#a99fb0;--bd:#372f40}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,system-ui,"Segoe UI",sans-serif}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,system-ui,"Segoe UI",sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 main{max-width:480px;margin:0 auto;padding:16px}
-h1{font-size:22px;margin:4px 0 12px}
+[hidden]{display:none!important}
+.top{display:flex;justify-content:space-between;align-items:center}
+h1{font-size:22px;margin:4px 0}
+.gear{border:0;background:none;font-size:24px;padding:6px}
+#st{color:var(--mut);font-size:13px;margin-bottom:10px;min-height:18px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .chip{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:20px;padding:8px 14px;font-size:15px}
 .chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
-.add{display:flex;gap:8px;margin-bottom:16px}
-.add input{flex:1;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:8px 10px;font-size:15px}
-.add button{border:0;background:var(--bd);color:var(--tx);border-radius:10px;padding:8px 12px;font-size:15px}
+.add{display:flex;gap:8px;margin-bottom:8px}
+input[type=text],input[type=password]{flex:1;width:100%;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:8px 10px;font-size:15px}
+button{font:inherit}
+.add button,.bar button,.xb button,#tsave,#imp{border:0;background:var(--ac);color:#fff;border-radius:10px;padding:9px 14px;font-size:15px;font-weight:600}
+#db{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;font-size:14px}
+.lnk{border:0;background:none;color:var(--mut);text-decoration:underline;font-size:14px;padding:2px 0}
+.dng{border:0;background:var(--no);color:#fff;border-radius:8px;padding:6px 12px}
+.row .dng+button,#db .dng+button{border:1px solid var(--bd);background:none;color:var(--tx);border-radius:8px;padding:6px 12px}
 .timer{background:var(--card);border:1px solid var(--bd);border-radius:18px;text-align:center;padding:20px 12px;margin-bottom:14px}
 .clock{font-size:46px;font-weight:700;font-variant-numeric:tabular-nums}
 .sub{color:var(--mut);font-size:14px;min-height:20px}
@@ -29,29 +36,36 @@ h1{font-size:22px;margin:4px 0 12px}
 #s{background:var(--ok)}#e{background:var(--no)}
 .btns button:disabled{opacity:.3}
 h2{font-size:16px;margin:0 0 8px;color:var(--mut)}
-.row{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.row b{font-size:17px}.row small{color:var(--mut);display:block}
-.row button{border:0;background:none;color:var(--mut);font-size:18px;padding:6px}
-[hidden]{display:none!important}
-.bar{display:flex;gap:8px;margin-bottom:12px}
-.bar select{flex:1;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:9px 10px;font-size:15px}
-.bar button,.xb button{border:0;background:var(--ac);color:#fff;border-radius:10px;padding:9px 14px;font-size:15px;font-weight:600}
-#xp{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:12px}
-#xt{width:100%;height:180px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:15px/1.4 ui-monospace,Menlo,monospace;padding:8px}
-.xb{display:flex;gap:8px;margin-top:8px;align-items:center}
-#wa{background:#25a244!important}
 h3{font-size:15px;margin:14px 0 8px}
+.bar{display:flex;gap:8px;margin-bottom:12px}
 #fb{flex:1;text-align:left;background:var(--card)!important;color:var(--tx)!important;border:1px solid var(--bd)!important;font-weight:400!important}
-#fp{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:4px 12px;margin-bottom:12px;max-height:220px;overflow-y:auto}
-#fp label{display:flex;gap:10px;align-items:center;padding:8px 0;font-size:16px}
+#fp,#xp,#sp{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+#fp{max-height:260px;overflow-y:auto}
+#fp label{display:flex;gap:10px;align-items:center;padding:7px 0}
 #fp input{width:20px;height:20px}
+.sep{color:var(--mut);font-size:13px;margin-top:8px;border-top:1px solid var(--bd);padding-top:8px}
+#xt{width:100%;height:180px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:15px/1.4 ui-monospace,Menlo,monospace;padding:8px}
+.xb{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
+#wa{background:#25a244!important}
+.row{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.row b{font-size:17px}.row small{color:var(--mut);display:block}
+.row>button{border:0;background:none;color:var(--mut);font-size:18px;padding:6px}
 </style>
 </head>
 <body>
 <main>
-<h1>🍼 Tomas</h1>
+<div class="top"><h1>🍼 Tomas</h1><button class="gear" id="gear" aria-label="Ajustes">⚙️</button></div>
+<div id="st"></div>
+<div id="sp" hidden>
+ <b>Conexión con GitHub</b>
+ <p class="sub" id="sm"></p>
+ <input id="tk" type="password" placeholder="Pega aquí el token de GitHub" autocomplete="off">
+ <div class="xb"><button id="tsave">Guardar token</button><button id="imp" hidden>Importar tomas de este dispositivo</button></div>
+ <p class="sub">El token se guarda solo en este dispositivo. Sin token puedes ver el registro, pero no modificarlo.</p>
+</div>
 <div class="chips" id="chips"></div>
-<div class="add"><input id="nn" placeholder="Añadir bebé (nombre)"><button id="ab">Añadir</button></div>
+<div class="add"><input type="text" id="nn" placeholder="Añadir bebé (nombre)"><button id="ab">Añadir</button></div>
+<div id="db" hidden></div>
 <div class="timer"><div class="clock" id="clk">00:00</div><div class="sub" id="sub"></div></div>
 <div class="btns"><button id="s">▶ Inicio</button><button id="e">■ Fin</button></div>
 <h2>Historial</h2>
@@ -61,62 +75,122 @@ h3{font-size:15px;margin:14px 0 8px}
 <div id="list"></div>
 </main>
 <script>
-const KEY='tomas-bebe-v1';
-let S={babies:[{id:'b1',name:'Bebé'}],feeds:[],active:{},sel:'b1'};
-try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+// Repositorio y archivo donde se guarda el registro compartido
+const REPO='gulpirri/toma-bebe',FILE='tomas.json',BRANCH='main';
+const API=`https://api.github.com/repos/${REPO}/contents/${FILE}`;
 const $=id=>document.getElementById(id);
 const p2=n=>String(n).padStart(2,'0');
-function dur(ms){const t=Math.max(0,Math.round(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;
- return h?`${h} h ${m} min`:`${m} min ${p2(s)} s`;}
-function clock(ms){const t=Math.floor(ms/1000),h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;
- return (h?p2(h)+':':'')+p2(m)+':'+p2(s);}
+const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
+const norm=d=>{d=d||{};return{babies:d.babies||[],feeds:d.feeds||[],active:d.active||{}};};
+let S;try{S=norm(JSON.parse(ls.get('tomas-cache-v2')))}catch(e){S=norm()}
+let sel=ls.get('tomas-sel')||null,TOKEN=ls.get('tomas-token')||'',busy=false,pend=null,delC=false,preset='all',FD=new Set();
+const mk=(t,x,f,c)=>{const e=document.createElement(t);if(x)e.textContent=x;if(f)e.onclick=f;if(c)e.className=c;return e;};
+const dur=ms=>{const t=Math.max(0,Math.round(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return h?`${h} h ${m} min`:`${m} min ${p2(s)} s`;};
+const clock=ms=>{const t=Math.floor(ms/1000),h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?p2(h)+':':'')+p2(m)+':'+p2(s);};
 const fd=t=>new Date(t).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
 const ft=t=>new Date(t).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-let FD=new Set();
 const dk=t=>{const d=new Date(t);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());};
 const dl=t=>{const d=new Date(t);return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+p2(d.getFullYear()%100);};
 const mins=f=>Math.round((f.end-f.start)/60000);
+const since=n=>{const c=new Date();c.setHours(0,0,0,0);c.setDate(c.getDate()-n);return c.getTime();};
+const inF=f=>preset==='custom'?FD.has(dk(f.start)):preset==='3d'?f.start>=since(2):preset==='7d'?f.start>=since(6):true;
+const setSt=t=>{$('st').textContent=t;};
+const openSet=m=>{$('sm').textContent=m||'';$('sp').hidden=false;};
+
+// ---- GitHub ----
+const hdr=()=>{const h={Accept:'application/vnd.github+json'};if(TOKEN)h.Authorization='Bearer '+TOKEN;return h;};
+const dec=b=>decodeURIComponent(escape(atob(b.replace(/\n/g,''))));
+const enc=s=>btoa(unescape(encodeURIComponent(s)));
+async function pull(){
+ const r=await fetch(`${API}?ref=${BRANCH}&t=${Date.now()}`,{headers:hdr(),cache:'no-store'});
+ if(r.status===404){if(!TOKEN)throw new Error('Configura el token en ⚙️');return{data:norm(),sha:null};}
+ if(!r.ok)throw new Error('GitHub '+r.status);
+ const j=await r.json();return{data:norm(JSON.parse(dec(j.content))),sha:j.sha};
+}
+const push=(data,sha,msg)=>fetch(API,{method:'PUT',headers:hdr(),body:JSON.stringify({message:msg,content:enc(JSON.stringify(data)),branch:BRANCH,...(sha?{sha}:{})})});
+async function mutate(fn,msg){
+ if(!TOKEN){openSet('Para guardar cambios necesitas el token.');return false;}
+ if(busy)return false;busy=true;setSt('Guardando…');
+ try{
+  for(let i=0;i<4;i++){
+   const{data,sha}=await pull();fn(data);
+   const r=await push(data,sha,msg);
+   if(r.ok){S=data;ls.set('tomas-cache-v2',JSON.stringify(S));setSt('Sincronizado '+ft(Date.now()));return true;}
+   if(r.status!==409&&r.status!==422)throw new Error('GitHub '+r.status+([401,403,404].includes(r.status)?' (revisa el token)':''));
+  }
+  throw new Error('Conflicto, inténtalo de nuevo');
+ }catch(e){setSt('⚠ '+e.message);return false;}
+ finally{busy=false;render();}
+}
+async function sync(){
+ if(busy)return;
+ try{const{data}=await pull();S=data;ls.set('tomas-cache-v2',JSON.stringify(S));setSt('Sincronizado '+ft(Date.now()));}
+ catch(e){setSt('⚠ '+e.message+' · mostrando datos guardados');}
+ render();
+}
+
+// ---- Exportar ----
 function exportText(){
- const fs=S.feeds.filter(f=>f.baby===S.sel&&(!FD.size||FD.has(dk(f.start)))).sort((a,b)=>a.start-b.start);
+ if(!sel)return '';
+ const fs=S.feeds.filter(f=>f.baby===sel&&inF(f)).sort((a,b)=>a.start-b.start);
  const days={};fs.forEach(f=>(days[dk(f.start)]=days[dk(f.start)]||[]).push(f));
- const nm=S.babies.find(b=>b.id===S.sel).name;
+ const nm=S.babies.find(b=>b.id===sel).name;
  return nm+'\n\n'+Object.keys(days).sort().map(k=>dl(days[k][0].start)+'\n'+days[k].map((f,i)=>`Toma ${i+1}; ${ft(f.start)} - ${ft(f.end)}; ${mins(f)} min`).join('\n')).join('\n\n');
 }
+
+// ---- Pantalla ----
 function render(){
- $('chips').innerHTML='';
- S.babies.forEach(b=>{const c=document.createElement('button');c.className='chip'+(b.id===S.sel?' on':'');
-  c.textContent=b.name+(S.active[b.id]?' ●':'');c.onclick=()=>{S.sel=b.id;save();render();};$('chips').appendChild(c);});
- const a=S.active[S.sel];
- $('s').disabled=!!a;$('e').disabled=!a;
- $('sub').textContent=a?`Inicio: ${fd(a)} ${ft(a)}`:'Listo para empezar';
+ if(!S.babies.find(b=>b.id===sel))sel=S.babies[0]?S.babies[0].id:null;
+ ls.set('tomas-sel',sel||'');
+ const ch=$('chips');ch.innerHTML='';
+ S.babies.forEach(b=>{const c=mk('button',b.name+(S.active[b.id]?' ●':''),()=>{sel=b.id;pend=null;delC=false;render();},'chip'+(b.id===sel?' on':''));ch.appendChild(c);});
+ const a=sel&&S.active[sel];
+ $('s').disabled=!sel||!!a;$('e').disabled=!a;
+ $('sub').textContent=!sel?'Añade un bebé para empezar':a?`Inicio: ${fd(a)} ${ft(a)}`:'Listo para empezar';
+ const D=$('db');D.innerHTML='';D.hidden=!sel;
+ if(sel){const id=sel,nm=S.babies.find(b=>b.id===id).name;
+  if(delC)D.append(mk('span',`¿Eliminar a ${nm} y todas sus tomas?`),
+   mk('button','Sí, eliminar',()=>{delC=false;mutate(d=>{d.babies=d.babies.filter(b=>b.id!==id);d.feeds=d.feeds.filter(f=>f.baby!==id);delete d.active[id];},'Eliminar bebé');},'dng'),
+   mk('button','Cancelar',()=>{delC=false;render();}));
+  else D.append(mk('button','Eliminar este bebé',()=>{delC=true;render();},'lnk'));}
  tick();
- const fs=S.feeds.filter(f=>f.baby===S.sel).sort((x,y)=>y.start-x.start);
+ // lista y filtro
+ const fs=S.feeds.filter(f=>f.baby===sel).sort((x,y)=>y.start-x.start);
  const keys=[...new Set(fs.map(f=>dk(f.start)))];
  FD=new Set([...FD].filter(k=>keys.includes(k)));
- $('fb').textContent=(FD.size?FD.size+(FD.size===1?' día':' días'):'Todos los días')+' ▾';
+ if(preset==='custom'&&!FD.size)preset='all';
+ $('fb').textContent=(preset==='3d'?'Últimos 3 días':preset==='7d'?'Última semana':preset==='custom'?FD.size+(FD.size===1?' día':' días'):'Todos los días')+' ▾';
  const P=$('fp');P.innerHTML='';
- const all=document.createElement('label');all.innerHTML=`<input type="checkbox" ${FD.size?'':'checked'}> Todos los días`;
- all.firstChild.onchange=()=>{FD=new Set();$('xp').hidden=true;render();};P.appendChild(all);
- keys.forEach(k=>{const l=document.createElement('label');l.innerHTML=`<input type="checkbox" ${FD.has(k)?'checked':''}> ${dl(new Date(k+'T12:00').getTime())}`;
-  l.firstChild.onchange=e=>{e.target.checked?FD.add(k):FD.delete(k);$('xp').hidden=true;render();};P.appendChild(l);});
+ const row=(type,checked,txt,fn)=>{const l=document.createElement('label'),i=document.createElement('input');i.type=type;i.checked=checked;i.onchange=fn;l.append(i,' '+txt);P.appendChild(l);};
+ [['all','Todos los días'],['3d','Últimos 3 días'],['7d','Última semana']].forEach(([k,t])=>row('radio',preset===k,t,()=>{preset=k;FD=new Set();$('xp').hidden=true;render();}));
+ if(keys.length)P.appendChild(mk('div','Elegir días',null,'sep'));
+ keys.forEach(k=>row('checkbox',preset==='custom'&&FD.has(k),dl(new Date(k+'T12:00').getTime()),e=>{
+  if(preset!=='custom'){preset='custom';FD=new Set();}
+  e.target.checked?FD.add(k):FD.delete(k);
+  if(!FD.size)preset='all';
+  $('xp').hidden=true;render();}));
  const L=$('list');L.innerHTML='';
- const shown=fs.filter(f=>!FD.size||FD.has(dk(f.start)));
- if(!shown.length)L.innerHTML='<div class="sub">Aún no hay tomas.</div>';
+ const shown=fs.filter(inF);
+ if(!shown.length)L.appendChild(mk('div','Sin tomas en este filtro.',null,'sub'));
  let last='';
  shown.forEach(f=>{const k=dk(f.start);
-  if(k!==last){last=k;const n=shown.filter(x=>dk(x.start)===k);const h=document.createElement('h3');h.textContent=`${dl(f.start)} · ${n.length} ${n.length===1?'toma':'tomas'} · ${dur(n.reduce((s,x)=>s+x.end-x.start,0))}`;L.appendChild(h);}
-  const r=document.createElement('div');r.className='row';
-  r.innerHTML=`<div><b>${dur(f.end-f.start)}</b><small>${ft(f.start)} → ${ft(f.end)}${dk(f.start)!==dk(f.end)?' ('+dl(f.end)+')':''}</small></div>`;
-  const d=document.createElement('button');d.textContent='✕';d.setAttribute('aria-label','Borrar');
-  d.onclick=()=>{S.feeds=S.feeds.filter(x=>x.id!==f.id);save();render();};r.appendChild(d);L.appendChild(r);});
+  if(k!==last){last=k;const n=shown.filter(x=>dk(x.start)===k);L.appendChild(mk('h3',`${dl(f.start)} · ${n.length} ${n.length===1?'toma':'tomas'} · ${dur(n.reduce((s,x)=>s+x.end-x.start,0))}`));}
+  const r=mk('div',null,null,'row');
+  if(pend===f.id)r.append(mk('span','¿Borrar esta toma?'),
+   mk('button','Borrar',()=>{pend=null;mutate(d=>{d.feeds=d.feeds.filter(x=>x.id!==f.id);},'Borrar toma');},'dng'),
+   mk('button','No',()=>{pend=null;render();}));
+  else{const i=document.createElement('div');
+   i.innerHTML=`<b>${dur(f.end-f.start)}</b><small>${ft(f.start)} → ${ft(f.end)}${dk(f.start)!==dk(f.end)?' ('+dl(f.end)+')':''}</small>`;
+   r.append(i,mk('button','✕',()=>{pend=f.id;render();}));r.lastChild.setAttribute('aria-label','Borrar');}
+  L.appendChild(r);});
 }
-function tick(){const a=S.active[S.sel];$('clk').textContent=a?clock(Date.now()-a):'00:00';}
-$('s').onclick=()=>{S.active[S.sel]=Date.now();save();render();};
-$('e').onclick=()=>{const a=S.active[S.sel];if(!a)return;
- S.feeds.push({id:'f'+Date.now(),baby:S.sel,start:a,end:Date.now()});delete S.active[S.sel];save();render();};
-$('ab').onclick=()=>{const n=$('nn').value.trim();if(!n)return;
- const id='b'+Date.now();S.babies.push({id,name:n});S.sel=id;$('nn').value='';save();render();};
+function tick(){const a=sel&&S.active[sel];$('clk').textContent=a?clock(Date.now()-a):'00:00';}
+
+// ---- Eventos ----
+$('s').onclick=()=>{const id=sel;mutate(d=>{if(!d.active[id])d.active[id]=Date.now();},'Inicio toma');};
+$('e').onclick=()=>{const id=sel,end=Date.now();mutate(d=>{const a=d.active[id];if(!a)return;d.feeds.push({id:'f'+end+Math.random().toString(36).slice(2,5),baby:id,start:a,end});delete d.active[id];},'Fin toma');};
+$('ab').onclick=async()=>{const n=$('nn').value.trim();if(!n)return;const id='b'+Date.now();
+ if(await mutate(d=>{d.babies.push({id,name:n});},'Añadir bebé')){sel=id;$('nn').value='';render();}};
 $('fb').onclick=()=>{$('fp').hidden=!$('fp').hidden;};
 $('ex').onclick=()=>{$('xt').value=exportText();$('xm').textContent='';$('xp').hidden=false;};
 $('cp').onclick=async()=>{const t=$('xt');let ok=false;
@@ -124,7 +198,21 @@ $('cp').onclick=async()=>{const t=$('xt');let ok=false;
  if(!ok){try{t.removeAttribute('readonly');t.select();t.setSelectionRange(0,99999);ok=document.execCommand('copy');t.setAttribute('readonly','');}catch(e){}}
  $('xm').textContent=ok?'¡Copiado!':'Mantén pulsado el texto para copiar';};
 $('wa').onclick=()=>{window.open('https://wa.me/?text='+encodeURIComponent($('xt').value),'_blank');};
-setInterval(tick,1000);render();
+$('gear').onclick=()=>{$('sp').hidden=!$('sp').hidden;$('sm').textContent=TOKEN?'Token guardado en este dispositivo.':'Todavía no hay token.';};
+$('tsave').onclick=async()=>{TOKEN=$('tk').value.trim();ls.set('tomas-token',TOKEN);$('tk').value='';
+ $('sm').textContent=TOKEN?'Token guardado. Comprobando…':'Token borrado.';await sync();
+ $('sm').textContent=$('st').textContent.startsWith('⚠')?$('st').textContent:'Conectado correctamente.';};
+// Importar tomas guardadas en la versión anterior (solo en este dispositivo)
+let old=null;try{old=JSON.parse(ls.get('tomas-bebe-v1'));}catch(e){}
+if(old&&((old.feeds||[]).length||(old.babies||[]).length)){$('imp').hidden=false;
+ $('imp').onclick=async()=>{const ok=await mutate(d=>{
+  (old.babies||[]).forEach(b=>{if(!d.babies.find(x=>x.id===b.id))d.babies.push({id:b.id,name:b.name});});
+  (old.feeds||[]).forEach(f=>{if(!d.feeds.find(x=>x.id===f.id))d.feeds.push({id:f.id,baby:f.baby,start:f.start,end:f.end});});
+  Object.entries(old.active||{}).forEach(([k,v])=>{if(!d.active[k])d.active[k]=v;});},'Importar datos antiguos');
+  if(ok){ls.del('tomas-bebe-v1');$('imp').hidden=true;$('sm').textContent='Importado.';}};}
+setInterval(tick,1000);setInterval(sync,30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync();});
+render();sync();
 </script>
 </body>
 </html>
