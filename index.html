@@ -50,6 +50,17 @@ h3{font-size:15px;margin:14px 0 8px}
 .row{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .row b{font-size:17px}.row small{color:var(--mut);display:block}
 .row>button{border:0;background:none;color:var(--mut);font-size:18px;padding:6px}
+.tabs,.seg{display:flex;gap:8px;margin-bottom:12px}
+.tabs button,.seg button{flex:1;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:9px 4px;font-weight:600;font-size:15px}
+.seg button{font-size:14px;font-weight:500}
+.tabs .on,.seg .on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--mut);margin:4px 0 16px}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+.tw{overflow-x:auto;margin-bottom:16px}
+table{border-collapse:collapse;font-size:14px;width:100%}
+th,td{border-bottom:1px solid var(--bd);padding:6px 8px;text-align:center;white-space:nowrap}
+th{color:var(--mut);font-weight:600}
+th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-align:left;font-weight:600}
 </style>
 </head>
 <body>
@@ -63,7 +74,9 @@ h3{font-size:15px;margin:14px 0 8px}
  <div class="xb"><button id="tsave">Guardar token</button><button id="imp" hidden>Importar tomas de este dispositivo</button></div>
  <p class="sub">El token se guarda solo en este dispositivo. Sin token puedes ver el registro, pero no modificarlo.</p>
 </div>
+<div class="tabs"><button id="t1" class="on">Registro</button><button id="t2">Estadísticas</button></div>
 <div class="chips" id="chips"></div>
+<div id="v1">
 <div class="add"><input type="text" id="nn" placeholder="Añadir bebé (nombre)"><button id="ab">Añadir</button></div>
 <div id="db" hidden></div>
 <div class="timer"><div class="clock" id="clk">00:00</div><div class="sub" id="sub"></div></div>
@@ -73,6 +86,17 @@ h3{font-size:15px;margin:14px 0 8px}
 <div id="fp" hidden></div>
 <div id="xp" hidden><textarea id="xt" readonly></textarea><div class="xb"><button id="cp">Copiar</button><button id="wa">WhatsApp</button><span class="sub" id="xm"></span></div></div>
 <div id="list"></div>
+</div>
+<div id="v2" hidden>
+ <div class="seg" id="sg"></div>
+ <h2>Tiempo total por día (min)</h2>
+ <div id="ch"></div>
+ <div class="lg" id="lg"></div>
+ <h2>Minutos de cada toma</h2>
+ <div class="tw"><table id="tm"></table></div>
+ <h2>Hora de inicio de cada toma</h2>
+ <div class="tw"><table id="th"></table></div>
+</div>
 </main>
 <script>
 // Repositorio y archivo donde se guarda el registro compartido
@@ -183,8 +207,44 @@ function render(){
    i.innerHTML=`<b>${dur(f.end-f.start)}</b><small>${ft(f.start)} → ${ft(f.end)}${dk(f.start)!==dk(f.end)?' ('+dl(f.end)+')':''}</small>`;
    r.append(i,mk('button','✕',()=>{pend=f.id;render();}));r.lastChild.setAttribute('aria-label','Borrar');}
   L.appendChild(r);});
+ if(!$('v2').hidden)stats();
 }
 function tick(){const a=sel&&S.active[sel];$('clk').textContent=a?clock(Date.now()-a):'00:00';}
+
+// ---- Estadísticas ----
+const COL=['#7b5ea7','#2e9e6b','#e8a33d','#d9534f','#3b82c4','#c25ea0','#6b7a8f','#8a6d3b'];
+let NR=7;
+function stats(){
+ const sg=$('sg');sg.innerHTML='';
+ [[3,'3 días'],[7,'Semana'],[15,'15 días'],[30,'Mes']].forEach(([n,t])=>sg.appendChild(mk('button',t,()=>{NR=n;render();},n===NR?'on':'')));
+ const by={};
+ S.feeds.filter(f=>f.baby===sel&&f.start>=since(NR-1)).sort((a,b)=>a.start-b.start).forEach(f=>(by[dk(f.start)]=by[dk(f.start)]||[]).push(f));
+ const days=[];
+ for(let i=NR-1;i>=0;i--){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-i);days.push({t:d.getTime(),fs:by[dk(d.getTime())]||[]});}
+ const mx=Math.max(0,...days.map(d=>d.fs.length));
+ const tot=days.map(d=>d.fs.reduce((s,f)=>s+(f.end-f.start)/60000,0));
+ if(!mx){$('ch').innerHTML='<div class="sub">Sin tomas en este periodo.</div>';$('lg').innerHTML='';$('tm').innerHTML='';$('th').innerHTML='';return;}
+ const W=360,H=230,L=34,R=6,T=16,B=28,pw=W-L-R,ph=H-T-B,m=Math.max(...tot);
+ const st=m<=30?10:m<=100?20:m<=300?50:100,top=Math.ceil(m/st)*st||st;
+ const y=v=>T+ph*(1-v/top),slot=pw/NR,bw=Math.min(28,slot*0.7),ev=Math.ceil(NR/7);
+ let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="color:var(--mut);display:block" font-size="10" fill="currentColor">`;
+ for(let v=0;v<=top;v+=st)g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--bd)"/><text x="${L-4}" y="${y(v)+3}" text-anchor="end">${v}</text>`;
+ days.forEach((d,i)=>{
+  const x=L+slot*i+(slot-bw)/2;let acc=0;
+  d.fs.forEach((f,j)=>{const mm=(f.end-f.start)/60000;
+   g+=`<rect x="${x}" y="${y(acc+mm)}" width="${bw}" height="${ph*mm/top}" fill="${COL[j%COL.length]}" stroke="var(--bg)" stroke-width=".5"><title>Toma ${j+1}: ${Math.round(mm)} min</title></rect>`;acc+=mm;});
+  if(acc>0&&NR<=15)g+=`<text x="${x+bw/2}" y="${y(acc)-3}" text-anchor="middle" style="fill:var(--tx)">${Math.round(acc)}</text>`;
+  if((NR-1-i)%ev===0)g+=`<text x="${x+bw/2}" y="${H-B+14}" text-anchor="middle">${dl(d.t).slice(0,5)}</text>`;
+ });
+ $('ch').innerHTML=g+'</svg>';
+ $('lg').innerHTML=Array.from({length:mx},(_,j)=>`<span><i style="background:${COL[j%COL.length]}"></i>Toma ${j+1}</span>`).join('');
+ const rows=days.filter(d=>d.fs.length);
+ const tb=(el,cell)=>{el.innerHTML='<tr><th>Día</th>'+Array.from({length:mx},(_,j)=>`<th>Toma ${j+1}</th>`).join('')+'</tr>'+
+  rows.map(d=>`<tr><td>${dl(d.t)}</td>`+Array.from({length:mx},(_,j)=>`<td>${d.fs[j]?cell(d.fs[j]):'–'}</td>`).join('')+'</tr>').join('');};
+ tb($('tm'),f=>mins(f));tb($('th'),f=>ft(f.start));
+}
+const tab=n=>{$('v1').hidden=n!==1;$('v2').hidden=n!==2;$('t1').className=n===1?'on':'';$('t2').className=n===2?'on':'';if(n===2)stats();};
+$('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
 
 // ---- Eventos ----
 $('s').onclick=()=>{const id=sel;mutate(d=>{if(!d.active[id])d.active[id]=Date.now();},'Inicio toma');};
