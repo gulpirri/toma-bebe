@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tomas">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <title>Tomas del bebé</title>
 <style>
 :root{--bg:#fdf6f0;--card:#fff;--tx:#2b2430;--mut:#7a707f;--ok:#2e9e6b;--no:#d9534f;--ac:#7b5ea7;--bd:#eadfd6}
@@ -65,7 +66,7 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-a
 </head>
 <body>
 <main>
-<div class="top"><h1>🍼 Tomas</h1><button class="gear" id="gear" aria-label="Ajustes">⚙️</button></div>
+<div class="top"><h1>🍼 Tomas</h1><div><button class="gear" id="rl" aria-label="Actualizar">🔄</button><button class="gear" id="gear" aria-label="Ajustes">⚙️</button></div></div>
 <div id="st"></div>
 <div id="sp" hidden>
  <b>Conexión con GitHub</b>
@@ -243,9 +244,9 @@ function stats(){
  $('ch').innerHTML=g+'</svg>';
  $('lg').innerHTML=Array.from({length:mx},(_,j)=>`<span><i style="background:${COL[j%COL.length]}"></i>Toma ${j+1}</span>`).join('');
  const rows=days.filter(d=>d.fs.length);
- const tb=(el,cell)=>{el.innerHTML='<tr><th>Día</th>'+Array.from({length:mx},(_,j)=>`<th>Toma ${j+1}</th>`).join('')+'</tr>'+
-  rows.map(d=>`<tr><td>${dl(d.t)}</td>`+Array.from({length:mx},(_,j)=>`<td>${d.fs[j]?cell(d.fs[j]):'–'}</td>`).join('')+'</tr>').join('');};
- tb($('tm'),f=>mins(f));tb($('th'),f=>ft(f.start));
+ const tb=(el,cell,tot)=>{el.innerHTML='<tr><th>Día</th>'+Array.from({length:mx},(_,j)=>`<th>Toma ${j+1}</th>`).join('')+(tot?'<th>Total</th>':'')+'</tr>'+
+  rows.map(d=>`<tr><td>${dl(d.t)}</td>`+Array.from({length:mx},(_,j)=>`<td>${d.fs[j]?cell(d.fs[j]):'–'}</td>`).join('')+(tot?`<td><b>${tot(d)}</b></td>`:'')+'</tr>').join('');};
+ tb($('tm'),f=>mins(f),d=>d.fs.reduce((s,f)=>s+mins(f),0));tb($('th'),f=>ft(f.start));
 }
 const tab=n=>{$('v1').hidden=n!==1;$('v2').hidden=n!==2;$('t1').className=n===1?'on':'';$('t2').className=n===2?'on':'';if(n===2)stats();};
 $('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
@@ -262,6 +263,7 @@ $('cp').onclick=async()=>{const t=$('xt');let ok=false;
  if(!ok){try{t.removeAttribute('readonly');t.select();t.setSelectionRange(0,99999);ok=document.execCommand('copy');t.setAttribute('readonly','');}catch(e){}}
  $('xm').textContent=ok?'¡Copiado!':'Mantén pulsado el texto para copiar';};
 $('wa').onclick=()=>{window.open('https://wa.me/?text='+encodeURIComponent($('xt').value),'_blank');};
+$('rl').onclick=()=>{location.href=location.pathname+'?v='+Date.now();};
 $('gear').onclick=()=>{$('sp').hidden=!$('sp').hidden;$('sm').textContent=TOKEN?'Token guardado en este dispositivo.':'Todavía no hay token.';};
 $('tsave').onclick=async()=>{TOKEN=$('tk').value.trim();ls.set('tomas-token',TOKEN);$('tk').value='';
  $('sm').textContent=TOKEN?'Token guardado. Comprobando…':'Token borrado.';await sync();
