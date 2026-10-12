@@ -89,7 +89,7 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-a
 </div>
 <div id="v2" hidden>
  <div class="seg" id="sg"></div>
- <h2>Tiempo total por día (min)</h2>
+ <h2>Minutos de cada toma por día</h2>
  <div id="ch"></div>
  <div class="lg" id="lg"></div>
  <h2>Minutos de cada toma</h2>
@@ -224,18 +224,22 @@ function stats(){
  const mx=Math.max(0,...days.map(d=>d.fs.length));
  const tot=days.map(d=>d.fs.reduce((s,f)=>s+(f.end-f.start)/60000,0));
  if(!mx){$('ch').innerHTML='<div class="sub">Sin tomas en este periodo.</div>';$('lg').innerHTML='';$('tm').innerHTML='';$('th').innerHTML='';return;}
- const W=360,H=230,L=34,R=6,T=16,B=28,pw=W-L-R,ph=H-T-B,m=Math.max(...tot);
+ const W=360,H=230,L=34,R=12,T=14,B=28,pw=W-L-R,ph=H-T-B;
+ const mn=f=>(f.end-f.start)/60000,m=Math.max(...days.flatMap(d=>d.fs.map(mn)));
  const st=m<=30?10:m<=100?20:m<=300?50:100,top=Math.ceil(m/st)*st||st;
- const y=v=>T+ph*(1-v/top),slot=pw/NR,bw=Math.min(28,slot*0.7),ev=Math.ceil(NR/7);
+ const y=v=>T+ph*(1-v/top),slot=pw/NR,cx=i=>L+slot*i+slot/2,ev=Math.ceil(NR/7);
  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="color:var(--mut);display:block" font-size="10" fill="currentColor">`;
  for(let v=0;v<=top;v+=st)g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--bd)"/><text x="${L-4}" y="${y(v)+3}" text-anchor="end">${v}</text>`;
- days.forEach((d,i)=>{
-  const x=L+slot*i+(slot-bw)/2;let acc=0;
-  d.fs.forEach((f,j)=>{const mm=(f.end-f.start)/60000;
-   g+=`<rect x="${x}" y="${y(acc+mm)}" width="${bw}" height="${ph*mm/top}" fill="${COL[j%COL.length]}" stroke="var(--bg)" stroke-width=".5"><title>Toma ${j+1}: ${Math.round(mm)} min</title></rect>`;acc+=mm;});
-  if(acc>0&&NR<=15)g+=`<text x="${x+bw/2}" y="${y(acc)-3}" text-anchor="middle" style="fill:var(--tx)">${Math.round(acc)}</text>`;
-  if((NR-1-i)%ev===0)g+=`<text x="${x+bw/2}" y="${H-B+14}" text-anchor="middle">${dl(d.t).slice(0,5)}</text>`;
- });
+ days.forEach((d,i)=>{if((NR-1-i)%ev===0)g+=`<text x="${cx(i)}" y="${H-B+14}" text-anchor="middle">${dl(d.t).slice(0,5)}</text>`;});
+ for(let j=0;j<mx;j++){
+  const c=COL[j%COL.length];let path='',pen=false,dots='';
+  days.forEach((d,i)=>{const f=d.fs[j];
+   if(!f){pen=false;return;}
+   const px=cx(i),py=y(mn(f));
+   path+=(pen?'L':'M')+px.toFixed(1)+' '+py.toFixed(1);pen=true;
+   dots+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${NR<=15?3.5:2.5}" fill="${c}"><title>${dl(d.t)} · Toma ${j+1}: ${Math.round(mn(f))} min</title></circle>`;});
+  g+=`<path d="${path}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots}`;
+ }
  $('ch').innerHTML=g+'</svg>';
  $('lg').innerHTML=Array.from({length:mx},(_,j)=>`<span><i style="background:${COL[j%COL.length]}"></i>Toma ${j+1}</span>`).join('');
  const rows=days.filter(d=>d.fs.length);
