@@ -8,6 +8,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="apple-touch-icon.png">
+<meta name="app-version" content="2026-10-17-b">
 <title>Tomas del bebé</title>
 <style>
 :root{--bg:#fdf6f0;--card:#fff;--tx:#2b2430;--mut:#7a707f;--ok:#2e9e6b;--no:#d9534f;--ac:#7b5ea7;--bd:#eadfd6}
@@ -311,8 +312,15 @@ if(old&&((old.feeds||[]).length||(old.babies||[]).length)){$('imp').hidden=false
   Object.entries(old.active||{}).forEach(([k,v])=>{if(!d.active[k])d.active[k]=v;});},'Importar datos antiguos');
   if(ok){ls.del('tomas-bebe-v1');$('imp').hidden=true;$('sm').textContent='Importado.';}};}
 setInterval(tick,1000);setInterval(sync,30000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync();});
-render();sync();
+// Si el icono de inicio tiene guardada una versión vieja de la página, se recarga sola
+async function checkVer(){
+ try{const r=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}),t=await r.text(),m=t.match(/app-version" content="([^"]+)"/);
+  if(m&&m[1]!==document.querySelector('meta[name=app-version]').content)location.replace(location.pathname+'?v='+Date.now());}catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkVer();sync();}});
+window.addEventListener('pageshow',sync);window.addEventListener('online',sync);
+render();checkVer();
+sync().then(()=>{if($('st').textContent.startsWith('⚠'))setTimeout(sync,3000);});
 </script>
 </body>
 </html>
