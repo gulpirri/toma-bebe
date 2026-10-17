@@ -40,7 +40,7 @@ h2{font-size:16px;margin:0 0 8px;color:var(--mut)}
 h3{font-size:15px;margin:14px 0 8px}
 .bar{display:flex;gap:8px;margin-bottom:12px}
 #fb{flex:1;text-align:left;background:var(--card)!important;color:var(--tx)!important;border:1px solid var(--bd)!important;font-weight:400!important}
-#fp,#xp,#sp{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+#fp,#xp,#sp,#ef{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:12px}
 #fp{max-height:260px;overflow-y:auto}
 #fp label{display:flex;gap:10px;align-items:center;padding:7px 0}
 #fp input{width:20px;height:20px}
@@ -62,6 +62,12 @@ table{border-collapse:collapse;font-size:14px;width:100%}
 th,td{border-bottom:1px solid var(--bd);padding:6px 8px;text-align:center;white-space:nowrap}
 th{color:var(--mut);font-weight:600}
 th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-align:left;font-weight:600}
+.acts{display:flex}
+.acts button{border:0;background:none;color:var(--mut);font-size:18px;padding:6px}
+#ef label{display:block;font-size:14px;color:var(--mut);margin-top:8px}
+#ef input{display:block;width:100%;min-height:42px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:10px;padding:9px;font-size:16px}
+#ef .err{color:var(--no);font-size:14px;min-height:18px;margin-top:6px}
+#ef .gh{background:none!important;color:var(--tx)!important;border:1px solid var(--bd)!important}
 </style>
 </head>
 <body>
@@ -83,9 +89,16 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-a
 <div class="timer"><div class="clock" id="clk">00:00</div><div class="sub" id="sub"></div></div>
 <div class="btns"><button id="s">▶ Inicio</button><button id="e">■ Fin</button></div>
 <h2>Historial</h2>
-<div class="bar"><button id="fb">Todos los días ▾</button><button id="ex">Exportar</button></div>
+<div class="bar"><button id="fb">Todos los días ▾</button><button id="ex">Exportar</button><button id="ad">＋ Toma</button></div>
 <div id="fp" hidden></div>
 <div id="xp" hidden><textarea id="xt" readonly></textarea><div class="xb"><button id="cp">Copiar</button><button id="wa">WhatsApp</button><span class="sub" id="xm"></span></div></div>
+<div id="ef" hidden>
+ <b id="eh">Añadir toma</b>
+ <label>Inicio<input type="datetime-local" id="e1"></label>
+ <label>Fin<input type="datetime-local" id="e2"></label>
+ <div class="err" id="er"></div>
+ <div class="xb"><button id="esv">Guardar</button><button id="ecn" class="gh">Cancelar</button></div>
+</div>
 <div id="list"></div>
 </div>
 <div id="v2" hidden>
@@ -170,7 +183,7 @@ function render(){
  const ch=$('chips');ch.innerHTML='';
  S.babies.forEach(b=>{const c=mk('button',b.name+(S.active[b.id]?' ●':''),()=>{sel=b.id;pend=null;delC=false;render();},'chip'+(b.id===sel?' on':''));ch.appendChild(c);});
  const a=sel&&S.active[sel];
- $('s').disabled=!sel||!!a;$('e').disabled=!a;
+ $('s').disabled=!sel||!!a;$('e').disabled=!a;$('ad').disabled=!sel;
  $('sub').textContent=!sel?'Añade un bebé para empezar':a?`Inicio: ${fd(a)} ${ft(a)}`:'Listo para empezar';
  const D=$('db');D.innerHTML='';D.hidden=!sel;
  if(sel){const id=sel,nm=S.babies.find(b=>b.id===id).name;
@@ -206,7 +219,7 @@ function render(){
    mk('button','No',()=>{pend=null;render();}));
   else{const i=document.createElement('div');
    i.innerHTML=`<b>${dur(f.end-f.start)}</b><small>${ft(f.start)} → ${ft(f.end)}${dk(f.start)!==dk(f.end)?' ('+dl(f.end)+')':''}</small>`;
-   r.append(i,mk('button','✕',()=>{pend=f.id;render();}));r.lastChild.setAttribute('aria-label','Borrar');}
+   const ac=mk('div',null,null,'acts'),be=mk('button','✎',()=>openEf(f)),bx=mk('button','✕',()=>{pend=f.id;render();});be.setAttribute('aria-label','Editar');bx.setAttribute('aria-label','Borrar');ac.append(be,bx);r.append(i,ac);}
   L.appendChild(r);});
  if(!$('v2').hidden)stats();
 }
@@ -250,6 +263,25 @@ function stats(){
 }
 const tab=n=>{$('v1').hidden=n!==1;$('v2').hidden=n!==2;$('t1').className=n===1?'on':'';$('t2').className=n===2?'on':'';if(n===2)stats();};
 $('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
+
+// ---- Editar / añadir tomas ----
+let editId=null;
+const lv=t=>{const d=new Date(t);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'T'+p2(d.getHours())+':'+p2(d.getMinutes());};
+function openEf(f){editId=f?f.id:null;const n=Date.now();
+ $('eh').textContent=f?'Editar toma':'Añadir toma';
+ $('e1').value=lv(f?f.start:n-20*6e4);$('e2').value=lv(f?f.end:n);
+ $('er').textContent='';$('ef').hidden=false;$('ef').scrollIntoView({behavior:'smooth',block:'center'});}
+$('ad').onclick=()=>openEf(null);
+$('ecn').onclick=()=>{$('ef').hidden=true;};
+$('esv').onclick=async()=>{
+ const a=new Date($('e1').value).getTime(),b=new Date($('e2').value).getTime();
+ if(!$('e1').value||!$('e2').value||isNaN(a)||isNaN(b)){$('er').textContent='Rellena inicio y fin.';return;}
+ if(b<=a){$('er').textContent='El fin debe ser posterior al inicio.';return;}
+ if(b>Date.now()+6e4){$('er').textContent='La hora de fin no puede estar en el futuro.';return;}
+ const id=sel,eid=editId;
+ const ok=await mutate(d=>{const f=eid&&d.feeds.find(x=>x.id===eid);
+  if(f){f.start=a;f.end=b;}else d.feeds.push({id:eid||'f'+a+Math.random().toString(36).slice(2,5),baby:id,start:a,end:b});},eid?'Editar toma':'Añadir toma');
+ if(ok)$('ef').hidden=true;};
 
 // ---- Eventos ----
 $('s').onclick=()=>{const id=sel;mutate(d=>{if(!d.active[id])d.active[id]=Date.now();},'Inicio toma');};
