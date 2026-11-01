@@ -8,7 +8,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="apple-touch-icon.png">
-<meta name="app-version" content="2026-10-17-b">
+<meta name="app-version" content="2026-10-17-d">
 <title>Tomas del bebé</title>
 <style>
 :root{--bg:#fdf6f0;--card:#fff;--tx:#2b2430;--mut:#7a707f;--ok:#2e9e6b;--no:#d9534f;--ac:#7b5ea7;--bd:#eadfd6}
@@ -133,8 +133,12 @@ const ft=t=>new Date(t).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-dig
 const dk=t=>{const d=new Date(t);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());};
 const dl=t=>{const d=new Date(t);return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+p2(d.getFullYear()%100);};
 const mins=f=>Math.round((f.end-f.start)/60000);
-const since=n=>{const c=new Date();c.setHours(0,0,0,0);c.setDate(c.getDate()-n);return c.getTime();};
-const inF=f=>preset==='custom'?FD.has(dk(f.start)):preset==='3d'?f.start>=since(2):preset==='7d'?f.start>=since(6):true;
+const NIGHT_START=21,NIGHT_END=9; // la noche va de 21:00 a 09:00 y el día de registro empieza a las 09:00
+const dy=t=>{const d=new Date(t);if(d.getHours()<NIGHT_END)d.setDate(d.getDate()-1);return d;};
+const ck=t=>dk(dy(t).getTime()),cl=t=>dl(dy(t).getTime());
+const nt=t=>{const h=new Date(t).getHours();return h>=NIGHT_START||h<NIGHT_END;};
+const since=n=>{const c=dy(Date.now());c.setHours(NIGHT_END,0,0,0);c.setDate(c.getDate()-n);return c.getTime();};
+const inF=f=>preset==='custom'?FD.has(ck(f.start)):preset==='3d'?f.start>=since(2):preset==='7d'?f.start>=since(6):true;
 const setSt=t=>{$('st').textContent=t;};
 const openSet=m=>{$('sm').textContent=m||'';$('sp').hidden=false;};
 
@@ -174,9 +178,9 @@ async function sync(){
 function exportText(){
  if(!sel)return '';
  const fs=S.feeds.filter(f=>f.baby===sel&&inF(f)).sort((a,b)=>a.start-b.start);
- const days={};fs.forEach(f=>(days[dk(f.start)]=days[dk(f.start)]||[]).push(f));
+ const days={};fs.forEach(f=>(days[ck(f.start)]=days[ck(f.start)]||[]).push(f));
  const nm=S.babies.find(b=>b.id===sel).name;
- return nm+'\n\n'+Object.keys(days).sort().map(k=>dl(days[k][0].start)+'\n'+days[k].map((f,i)=>`Toma ${i+1}; ${ft(f.start)} - ${ft(f.end)}; ${mins(f)} min`).join('\n')).join('\n\n');
+ return nm+'\n\n'+Object.keys(days).sort().map(k=>cl(days[k][0].start)+'\n'+days[k].map((f,i)=>`Toma ${i+1}; ${ft(f.start)} - ${ft(f.end)}; ${mins(f)} min`).join('\n')).join('\n\n');
 }
 
 // ---- Pantalla ----
@@ -197,7 +201,7 @@ function render(){
  tick();
  // lista y filtro
  const fs=S.feeds.filter(f=>f.baby===sel).sort((x,y)=>y.start-x.start);
- const keys=[...new Set(fs.map(f=>dk(f.start)))];
+ const keys=[...new Set(fs.map(f=>ck(f.start)))];
  FD=new Set([...FD].filter(k=>keys.includes(k)));
  if(preset==='custom'&&!FD.size)preset='all';
  $('fb').textContent=(preset==='3d'?'Últimos 3 días':preset==='7d'?'Última semana':preset==='custom'?FD.size+(FD.size===1?' día':' días'):'Todos los días')+' ▾';
@@ -214,14 +218,14 @@ function render(){
  const shown=fs.filter(inF);
  if(!shown.length)L.appendChild(mk('div','Sin tomas en este filtro.',null,'sub'));
  let last='';
- shown.forEach(f=>{const k=dk(f.start);
-  if(k!==last){last=k;const n=shown.filter(x=>dk(x.start)===k);L.appendChild(mk('h3',`${dl(f.start)} · ${n.length} ${n.length===1?'toma':'tomas'} · ${dur(n.reduce((s,x)=>s+x.end-x.start,0))}`));}
+ shown.forEach(f=>{const k=ck(f.start);
+  if(k!==last){last=k;const n=shown.filter(x=>ck(x.start)===k);L.appendChild(mk('h3',`${cl(f.start)} · ${n.length} ${n.length===1?'toma':'tomas'} · ${dur(n.reduce((s,x)=>s+x.end-x.start,0))}`));}
   const r=mk('div',null,null,'row');
   if(pend===f.id)r.append(mk('span','¿Borrar esta toma?'),
    mk('button','Borrar',()=>{pend=null;mutate(d=>{d.feeds=d.feeds.filter(x=>x.id!==f.id);},'Borrar toma');},'dng'),
    mk('button','No',()=>{pend=null;render();}));
   else{const i=document.createElement('div');
-   i.innerHTML=`<b>${dur(f.end-f.start)}</b><small>${ft(f.start)} → ${ft(f.end)}${dk(f.start)!==dk(f.end)?' ('+dl(f.end)+')':''}</small>`;
+   i.innerHTML=`<b>${dur(f.end-f.start)}</b><small>${nt(f.start)?'🌙 ':''}${ft(f.start)} → ${ft(f.end)}${dk(f.start)!==dk(f.end)?' ('+dl(f.end)+')':''}</small>`;
    const ac=mk('div',null,null,'acts'),be=mk('button','✎',()=>openEf(f)),bx=mk('button','✕',()=>{pend=f.id;render();});be.setAttribute('aria-label','Editar');bx.setAttribute('aria-label','Borrar');ac.append(be,bx);r.append(i,ac);}
   L.appendChild(r);});
  if(!$('v2').hidden)stats();
@@ -235,9 +239,9 @@ function stats(){
  const sg=$('sg');sg.innerHTML='';
  [[3,'3 días'],[7,'Semana'],[15,'15 días'],[30,'Mes']].forEach(([n,t])=>sg.appendChild(mk('button',t,()=>{NR=n;render();},n===NR?'on':'')));
  const by={};
- S.feeds.filter(f=>f.baby===sel&&f.start>=since(NR-1)).sort((a,b)=>a.start-b.start).forEach(f=>(by[dk(f.start)]=by[dk(f.start)]||[]).push(f));
+ S.feeds.filter(f=>f.baby===sel&&f.start>=since(NR-1)).sort((a,b)=>a.start-b.start).forEach(f=>(by[ck(f.start)]=by[ck(f.start)]||[]).push(f));
  const days=[];
- for(let i=NR-1;i>=0;i--){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-i);days.push({t:d.getTime(),fs:by[dk(d.getTime())]||[]});}
+ for(let i=NR-1;i>=0;i--){const d=dy(Date.now());d.setHours(12,0,0,0);d.setDate(d.getDate()-i);days.push({t:d.getTime(),fs:by[dk(d.getTime())]||[]});}
  const mx=Math.max(0,...days.map(d=>d.fs.length));
  const tot=days.map(d=>d.fs.reduce((s,f)=>s+(f.end-f.start)/60000,0));
  if(!mx){$('ch').innerHTML='<div class="sub">Sin tomas en este periodo.</div>';$('lg').innerHTML='';$('tm').innerHTML='';$('th').innerHTML='';return;}
@@ -262,7 +266,7 @@ function stats(){
  const rows=days.filter(d=>d.fs.length);
  const tb=(el,cell,tot)=>{el.innerHTML='<tr><th>Día</th>'+Array.from({length:mx},(_,j)=>`<th>Toma ${j+1}</th>`).join('')+(tot?'<th>Total</th>':'')+'</tr>'+
   rows.map(d=>`<tr><td>${dl(d.t)}</td>`+Array.from({length:mx},(_,j)=>`<td>${d.fs[j]?cell(d.fs[j]):'–'}</td>`).join('')+(tot?`<td><b>${tot(d)}</b></td>`:'')+'</tr>').join('');};
- tb($('tm'),f=>mins(f),d=>d.fs.reduce((s,f)=>s+mins(f),0));tb($('th'),f=>ft(f.start));
+ tb($('tm'),f=>mins(f),d=>d.fs.reduce((s,f)=>s+mins(f),0));tb($('th'),f=>(nt(f.start)?'🌙 ':'')+ft(f.start));
 }
 const tab=n=>{$('v1').hidden=n!==1;$('v2').hidden=n!==2;$('t1').className=n===1?'on':'';$('t2').className=n===2?'on':'';if(n===2)stats();};
 $('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
