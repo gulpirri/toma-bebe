@@ -8,7 +8,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="apple-touch-icon.png">
-<meta name="app-version" content="2026-10-17-d">
+<meta name="app-version" content="2026-10-17-e">
 <title>Tomas del bebé</title>
 <style>
 :root{--bg:#fdf6f0;--card:#fff;--tx:#2b2430;--mut:#7a707f;--ok:#2e9e6b;--no:#d9534f;--ac:#7b5ea7;--bd:#eadfd6}
@@ -71,6 +71,13 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-a
 #ef input{display:block;width:100%;min-height:42px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:10px;padding:9px;font-size:16px}
 #ef .err{color:var(--no);font-size:14px;min-height:18px;margin-top:6px}
 #ef .gh{background:none!important;color:var(--tx)!important;border:1px solid var(--bd)!important}
+#wb{margin-top:-10px;margin-bottom:22px}
+#wk{width:100%;border:0;border-radius:14px;padding:14px;font-size:17px;font-weight:700;color:#fff;background:#4f5fb3}
+#wk:disabled{opacity:.3}
+#wl{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px}
+.pill{display:inline-flex;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:2px 4px 2px 10px;font-size:14px}
+.pill button{border:0;background:none;color:var(--mut);font-size:15px;padding:4px 6px}
+#wl .dng+button{border:1px solid var(--bd);background:none;color:var(--tx);border-radius:8px;padding:6px 12px}
 </style>
 </head>
 <body>
@@ -91,6 +98,7 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-a
 <div id="db" hidden></div>
 <div class="timer"><div class="clock" id="clk">00:00</div><div class="sub" id="sub"></div></div>
 <div class="btns"><button id="s">▶ Inicio</button><button id="e">■ Fin</button></div>
+<div id="wb"><button id="wk">🌙 Despertar nocturno</button><div class="sub" id="wc"></div><div id="wl"></div></div>
 <h2>Historial</h2>
 <div class="bar"><button id="fb">Todos los días ▾</button><button id="ex">Exportar</button><button id="ad">＋ Toma</button></div>
 <div id="fp" hidden></div>
@@ -109,6 +117,8 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-a
  <h2>Minutos de cada toma por día</h2>
  <div id="ch"></div>
  <div class="lg" id="lg"></div>
+ <h2>Despertares nocturnos por noche</h2>
+ <div id="wch"></div>
  <h2>Minutos de cada toma</h2>
  <div class="tw"><table id="tm"></table></div>
  <h2>Hora de inicio de cada toma</h2>
@@ -122,7 +132,7 @@ const API=`https://api.github.com/repos/${REPO}/contents/${FILE}`;
 const $=id=>document.getElementById(id);
 const p2=n=>String(n).padStart(2,'0');
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
-const norm=d=>{d=d||{};return{babies:d.babies||[],feeds:d.feeds||[],active:d.active||{}};};
+const norm=d=>{d=d||{};return{babies:d.babies||[],feeds:d.feeds||[],active:d.active||{},wakes:d.wakes||[]};};
 let S;try{S=norm(JSON.parse(ls.get('tomas-cache-v2')))}catch(e){S=norm()}
 let sel=ls.get('tomas-sel')||null,TOKEN=ls.get('tomas-token')||'',busy=false,pend=null,delC=false,preset='all',FD=new Set();
 const mk=(t,x,f,c)=>{const e=document.createElement(t);if(x)e.textContent=x;if(f)e.onclick=f;if(c)e.className=c;return e;};
@@ -190,12 +200,20 @@ function render(){
  const ch=$('chips');ch.innerHTML='';
  S.babies.forEach(b=>{const c=mk('button',b.name+(S.active[b.id]?' ●':''),()=>{sel=b.id;pend=null;delC=false;render();},'chip'+(b.id===sel?' on':''));ch.appendChild(c);});
  const a=sel&&S.active[sel];
- $('s').disabled=!sel||!!a;$('e').disabled=!a;$('ad').disabled=!sel;
+ $('s').disabled=!sel||!!a;$('e').disabled=!a;$('ad').disabled=!sel;$('wk').disabled=!sel;
+ const WL=$('wl');WL.innerHTML='';
+ const rw=S.wakes.filter(w=>w.baby===sel&&w.t>=Date.now()-864e5).sort((x,y)=>y.t-x.t);
+ $('wc').textContent=sel?(rw.length?`Despertares (últimas 24 h): ${rw.length}`:'Sin despertares en las últimas 24 h'):'';
+ rw.forEach(w=>{
+  if(wpend===w.id)WL.append(mk('span','¿Borrar '+ft(w.t)+'?'),
+   mk('button','Borrar',()=>{wpend=null;mutate(d=>{d.wakes=d.wakes.filter(x=>x.id!==w.id);},'Borrar despertar');},'dng'),
+   mk('button','No',()=>{wpend=null;render();}));
+  else{const pl=mk('span',null,null,'pill'),bx=mk('button','✕',()=>{wpend=w.id;render();});bx.setAttribute('aria-label','Borrar despertar');pl.append(ft(w.t)+' ',bx);WL.append(pl);}});
  $('sub').textContent=!sel?'Añade un bebé para empezar':a?`Inicio: ${fd(a)} ${ft(a)}`:'Listo para empezar';
  const D=$('db');D.innerHTML='';D.hidden=!sel;
  if(sel){const id=sel,nm=S.babies.find(b=>b.id===id).name;
   if(delC)D.append(mk('span',`¿Eliminar a ${nm} y todas sus tomas?`),
-   mk('button','Sí, eliminar',()=>{delC=false;mutate(d=>{d.babies=d.babies.filter(b=>b.id!==id);d.feeds=d.feeds.filter(f=>f.baby!==id);delete d.active[id];},'Eliminar bebé');},'dng'),
+   mk('button','Sí, eliminar',()=>{delC=false;mutate(d=>{d.babies=d.babies.filter(b=>b.id!==id);d.feeds=d.feeds.filter(f=>f.baby!==id);d.wakes=d.wakes.filter(w=>w.baby!==id);delete d.active[id];},'Eliminar bebé');},'dng'),
    mk('button','Cancelar',()=>{delC=false;render();}));
   else D.append(mk('button','Eliminar este bebé',()=>{delC=true;render();},'lnk'));}
  tick();
@@ -242,6 +260,7 @@ function stats(){
  S.feeds.filter(f=>f.baby===sel&&f.start>=since(NR-1)).sort((a,b)=>a.start-b.start).forEach(f=>(by[ck(f.start)]=by[ck(f.start)]||[]).push(f));
  const days=[];
  for(let i=NR-1;i>=0;i--){const d=dy(Date.now());d.setHours(12,0,0,0);d.setDate(d.getDate()-i);days.push({t:d.getTime(),fs:by[dk(d.getTime())]||[]});}
+ wakeChart(days);
  const mx=Math.max(0,...days.map(d=>d.fs.length));
  const tot=days.map(d=>d.fs.reduce((s,f)=>s+(f.end-f.start)/60000,0));
  if(!mx){$('ch').innerHTML='<div class="sub">Sin tomas en este periodo.</div>';$('lg').innerHTML='';$('tm').innerHTML='';$('th').innerHTML='';return;}
@@ -270,6 +289,24 @@ function stats(){
 }
 const tab=n=>{$('v1').hidden=n!==1;$('v2').hidden=n!==2;$('t1').className=n===1?'on':'';$('t2').className=n===2?'on':'';if(n===2)stats();};
 $('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
+
+// ---- Despertares nocturnos ----
+let wpend=null;
+function wakeChart(days){
+ const by={};
+ S.wakes.filter(w=>w.baby===sel&&w.t>=since(NR-1)).forEach(w=>{const k=ck(w.t);by[k]=(by[k]||0)+1;});
+ const cnt=days.map(d=>by[dk(d.t)]||0),m=Math.max(0,...cnt);
+ if(!m){$('wch').innerHTML='<div class="sub">Sin despertares en este periodo.</div>';return;}
+ const W=360,H=200,L=30,R=8,T=16,B=28,pw=W-L-R,ph=H-T-B,st=m<=5?1:Math.ceil(m/5),top=Math.ceil(m/st)*st;
+ const y=v=>T+ph*(1-v/top),slot=pw/NR,bw=slot*0.85,ev=Math.ceil(NR/7);
+ let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="color:var(--mut);display:block" font-size="10" fill="currentColor">`;
+ for(let v=0;v<=top;v+=st)g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--bd)"/><text x="${L-4}" y="${y(v)+3}" text-anchor="end">${v}</text>`;
+ days.forEach((d,i)=>{const x=L+slot*i+(slot-bw)/2;
+  if(cnt[i])g+=`<rect x="${x}" y="${y(cnt[i])}" width="${bw}" height="${ph*cnt[i]/top}" fill="#4f5fb3"><title>${dl(d.t)}: ${cnt[i]} despertares</title></rect>`+(NR<=15?`<text x="${x+bw/2}" y="${y(cnt[i])-3}" text-anchor="middle" style="fill:var(--tx)">${cnt[i]}</text>`:'');
+  if((NR-1-i)%ev===0)g+=`<text x="${x+bw/2}" y="${H-B+14}" text-anchor="middle">${dl(d.t).slice(0,5)}</text>`;});
+ $('wch').innerHTML=g+'</svg>';
+}
+$('wk').onclick=()=>{const id=sel,t=Date.now();mutate(d=>{d.wakes.push({id:'w'+t+Math.random().toString(36).slice(2,5),baby:id,t});},'Despertar nocturno');};
 
 // ---- Editar / añadir tomas ----
 let editId=null;
