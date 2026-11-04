@@ -8,7 +8,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="apple-touch-icon.png">
-<meta name="app-version" content="2026-10-17-e">
+<meta name="app-version" content="2026-10-17-f">
 <title>Tomas del bebé</title>
 <style>
 :root{--bg:#fdf6f0;--card:#fff;--tx:#2b2430;--mut:#7a707f;--ok:#2e9e6b;--no:#d9534f;--ac:#7b5ea7;--bd:#eadfd6}
@@ -72,9 +72,12 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-a
 #ef .err{color:var(--no);font-size:14px;min-height:18px;margin-top:6px}
 #ef .gh{background:none!important;color:var(--tx)!important;border:1px solid var(--bd)!important}
 #wb{margin-top:-10px;margin-bottom:22px}
-#wk{width:100%;border:0;border-radius:14px;padding:14px;font-size:17px;font-weight:700;color:#fff;background:#4f5fb3}
-#wk:disabled{opacity:.3}
-#wl{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px}
+.btns2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+.btns2 button{border:0;border-radius:14px;padding:14px 0;font-size:17px;font-weight:700;color:#fff}
+#wk{background:#4f5fb3}#ws{background:#2f8f9d}
+.btns2 button:disabled{opacity:.3}
+#wl{margin-top:8px}
+#wadd{margin-top:2px}
 .pill{display:inline-flex;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:2px 4px 2px 10px;font-size:14px}
 .pill button{border:0;background:none;color:var(--mut);font-size:15px;padding:4px 6px}
 #wl .dng+button{border:1px solid var(--bd);background:none;color:var(--tx);border-radius:8px;padding:6px 12px}
@@ -98,17 +101,17 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-a
 <div id="db" hidden></div>
 <div class="timer"><div class="clock" id="clk">00:00</div><div class="sub" id="sub"></div></div>
 <div class="btns"><button id="s">▶ Inicio</button><button id="e">■ Fin</button></div>
-<div id="wb"><button id="wk">🌙 Despertar nocturno</button><div class="sub" id="wc"></div><div id="wl"></div></div>
+<div id="wb"><div class="btns2"><button id="wk">🌙 Despertar</button><button id="ws">😴 Dormir</button></div><div class="sub" id="wc"></div><div id="wl"></div><button class="lnk" id="wadd">＋ Añadir despertar</button></div>
 <h2>Historial</h2>
 <div class="bar"><button id="fb">Todos los días ▾</button><button id="ex">Exportar</button><button id="ad">＋ Toma</button></div>
 <div id="fp" hidden></div>
 <div id="xp" hidden><textarea id="xt" readonly></textarea><div class="xb"><button id="cp">Copiar</button><button id="wa">WhatsApp</button><span class="sub" id="xm"></span></div></div>
 <div id="ef" hidden>
  <b id="eh">Añadir toma</b>
- <label>Inicio<input type="datetime-local" id="e1"></label>
- <label>Fin<input type="datetime-local" id="e2"></label>
+ <label><span id="l1">Inicio</span><input type="datetime-local" id="e1"></label>
+ <label><span id="l2">Fin</span><input type="datetime-local" id="e2"></label>
  <div class="err" id="er"></div>
- <div class="xb"><button id="esv">Guardar</button><button id="ecn" class="gh">Cancelar</button></div>
+ <div class="xb"><button id="esv">Guardar</button><button id="ecn" class="gh">Cancelar</button><button id="eclr" class="gh" hidden>Sin hora de fin</button></div>
 </div>
 <div id="list"></div>
 </div>
@@ -200,15 +203,21 @@ function render(){
  const ch=$('chips');ch.innerHTML='';
  S.babies.forEach(b=>{const c=mk('button',b.name+(S.active[b.id]?' ●':''),()=>{sel=b.id;pend=null;delC=false;render();},'chip'+(b.id===sel?' on':''));ch.appendChild(c);});
  const a=sel&&S.active[sel];
- $('s').disabled=!sel||!!a;$('e').disabled=!a;$('ad').disabled=!sel;$('wk').disabled=!sel;
+ $('s').disabled=!sel||!!a;$('e').disabled=!a;$('ad').disabled=!sel;$('wadd').disabled=!sel;
+ const op=S.wakes.find(w=>w.baby===sel&&w.e===null);
+ $('wk').disabled=!sel||!!op;$('ws').disabled=!op;
+ wcText();
  const WL=$('wl');WL.innerHTML='';
- const rw=S.wakes.filter(w=>w.baby===sel&&w.t>=Date.now()-864e5).sort((x,y)=>y.t-x.t);
- $('wc').textContent=sel?(rw.length?`Despertares (últimas 24 h): ${rw.length}`:'Sin despertares en las últimas 24 h'):'';
- rw.forEach(w=>{
-  if(wpend===w.id)WL.append(mk('span','¿Borrar '+ft(w.t)+'?'),
+ S.wakes.filter(w=>w.baby===sel&&(w.e===null||w.t>=Date.now()-864e5)).sort((x,y)=>y.t-x.t).forEach(w=>{
+  const r=mk('div',null,null,'row');
+  if(wpend===w.id)r.append(mk('span','¿Borrar este despertar?'),
    mk('button','Borrar',()=>{wpend=null;mutate(d=>{d.wakes=d.wakes.filter(x=>x.id!==w.id);},'Borrar despertar');},'dng'),
    mk('button','No',()=>{wpend=null;render();}));
-  else{const pl=mk('span',null,null,'pill'),bx=mk('button','✕',()=>{wpend=w.id;render();});bx.setAttribute('aria-label','Borrar despertar');pl.append(ft(w.t)+' ',bx);WL.append(pl);}});
+  else{const i=document.createElement('div');
+   i.innerHTML=w.e===null?`<b>En curso</b><small>🌙 ${ft(w.t)} →</small>`:w.e?`<b>${dur(w.e-w.t)}</b><small>🌙 ${ft(w.t)} → ${ft(w.e)}</small>`:`<b>${ft(w.t)}</b><small>🌙 despertar</small>`;
+   const ac=mk('div',null,null,'acts'),be=mk('button','✎',()=>openEf(w,'wake')),bx=mk('button','✕',()=>{wpend=w.id;render();});
+   be.setAttribute('aria-label','Editar');bx.setAttribute('aria-label','Borrar');ac.append(be,bx);r.append(i,ac);}
+  WL.appendChild(r);});
  $('sub').textContent=!sel?'Añade un bebé para empezar':a?`Inicio: ${fd(a)} ${ft(a)}`:'Listo para empezar';
  const D=$('db');D.innerHTML='';D.hidden=!sel;
  if(sel){const id=sel,nm=S.babies.find(b=>b.id===id).name;
@@ -248,7 +257,10 @@ function render(){
   L.appendChild(r);});
  if(!$('v2').hidden)stats();
 }
-function tick(){const a=sel&&S.active[sel];$('clk').textContent=a?clock(Date.now()-a):'00:00';}
+function wcText(){const op=sel&&S.wakes.find(w=>w.baby===sel&&w.e===null);
+ if(op)$('wc').textContent=`Despierto desde las ${ft(op.t)} · ${clock(Date.now()-op.t)}`;
+ else{const n=sel?S.wakes.filter(w=>w.baby===sel&&w.t>=Date.now()-864e5).length:0;$('wc').textContent=sel?(n?`Despertares (últimas 24 h): ${n}`:'Sin despertares en las últimas 24 h'):'';}}
+function tick(){const a=sel&&S.active[sel];$('clk').textContent=a?clock(Date.now()-a):'00:00';wcText();}
 
 // ---- Estadísticas ----
 const COL=['#7b5ea7','#2e9e6b','#e8a33d','#d9534f','#3b82c4','#c25ea0','#6b7a8f','#8a6d3b'];
@@ -306,25 +318,34 @@ function wakeChart(days){
   if((NR-1-i)%ev===0)g+=`<text x="${x+bw/2}" y="${H-B+14}" text-anchor="middle">${dl(d.t).slice(0,5)}</text>`;});
  $('wch').innerHTML=g+'</svg>';
 }
-$('wk').onclick=()=>{const id=sel,t=Date.now();mutate(d=>{d.wakes.push({id:'w'+t+Math.random().toString(36).slice(2,5),baby:id,t});},'Despertar nocturno');};
+$('wk').onclick=()=>{const id=sel,t=Date.now();mutate(d=>{if(!d.wakes.some(w=>w.baby===id&&w.e===null))d.wakes.push({id:'w'+t+Math.random().toString(36).slice(2,5),baby:id,t,e:null});},'Despertar');};
+$('ws').onclick=()=>{const id=sel,t=Date.now();mutate(d=>{const w=d.wakes.filter(x=>x.baby===id&&x.e===null).sort((x,y)=>y.t-x.t)[0];if(w)w.e=t;},'Dormir');};
 
 // ---- Editar / añadir tomas ----
-let editId=null;
+let editId=null,efKind='feed';
 const lv=t=>{const d=new Date(t);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'T'+p2(d.getHours())+':'+p2(d.getMinutes());};
-function openEf(f){editId=f?f.id:null;const n=Date.now();
- $('eh').textContent=f?'Editar toma':'Añadir toma';
- $('e1').value=lv(f?f.start:n-20*6e4);$('e2').value=lv(f?f.end:n);
- $('er').textContent='';$('ef').hidden=false;$('ef').scrollIntoView({behavior:'smooth',block:'center'});}
-$('ad').onclick=()=>openEf(null);
+function openEf(f,kind){efKind=kind||'feed';editId=f?f.id:null;const n=Date.now(),w=efKind==='wake';
+ $('eh').textContent=(f?'Editar ':'Añadir ')+(w?'despertar':'toma');
+ $('l1').textContent=w?'Despertó a las':'Inicio';$('l2').textContent=w?'Volvió a dormir (opcional)':'Fin';
+ $('e1').value=lv(f?(w?f.t:f.start):n-(w?10:20)*6e4);
+ $('e2').value=f?(w?(f.e?lv(f.e):''):lv(f.end)):lv(n);
+ $('eclr').hidden=!w;$('er').textContent='';$('ef').hidden=false;$('ef').scrollIntoView({behavior:'smooth',block:'center'});}
+$('ad').onclick=()=>openEf(null,'feed');
+$('wadd').onclick=()=>openEf(null,'wake');
+$('eclr').onclick=()=>{$('e2').value='';};
 $('ecn').onclick=()=>{$('ef').hidden=true;};
-$('esv').onclick=async()=>{
- const a=new Date($('e1').value).getTime(),b=new Date($('e2').value).getTime();
- if(!$('e1').value||!$('e2').value||isNaN(a)||isNaN(b)){$('er').textContent='Rellena inicio y fin.';return;}
- if(b<=a){$('er').textContent='El fin debe ser posterior al inicio.';return;}
- if(b>Date.now()+6e4){$('er').textContent='La hora de fin no puede estar en el futuro.';return;}
+$('esv').onclick=async()=>{const w=efKind==='wake';
+ const a=new Date($('e1').value).getTime(),hasB=!!$('e2').value,b=hasB?new Date($('e2').value).getTime():null;
+ if(!$('e1').value||isNaN(a)||(!w&&!hasB)||(hasB&&isNaN(b))){$('er').textContent=w?'Indica cuándo despertó.':'Rellena inicio y fin.';return;}
+ if(hasB&&b<=a){$('er').textContent=(w?'Volver a dormir':'El fin')+' debe ser posterior al inicio.';return;}
+ if(a>Date.now()+6e4||(hasB&&b>Date.now()+6e4)){$('er').textContent='La hora no puede estar en el futuro.';return;}
  const id=sel,eid=editId;
- const ok=await mutate(d=>{const f=eid&&d.feeds.find(x=>x.id===eid);
-  if(f){f.start=a;f.end=b;}else d.feeds.push({id:eid||'f'+a+Math.random().toString(36).slice(2,5),baby:id,start:a,end:b});},eid?'Editar toma':'Añadir toma');
+ const ok=await mutate(d=>{
+  if(w){const x=eid&&d.wakes.find(y=>y.id===eid);
+   if(x){x.t=a;if(!(b===null&&x.e===undefined))x.e=b;}else d.wakes.push({id:eid||'w'+a+Math.random().toString(36).slice(2,5),baby:id,t:a,e:b});}
+  else{const f=eid&&d.feeds.find(x=>x.id===eid);
+   if(f){f.start=a;f.end=b;}else d.feeds.push({id:eid||'f'+a+Math.random().toString(36).slice(2,5),baby:id,start:a,end:b});}},
+  (eid?'Editar ':'Añadir ')+(w?'despertar':'toma'));
  if(ok)$('ef').hidden=true;};
 
 // ---- Eventos ----
