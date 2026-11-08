@@ -8,7 +8,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="apple-touch-icon.png">
-<meta name="app-version" content="2026-10-17-f">
+<meta name="app-version" content="2026-10-17-i">
 <title>Tomas del bebé</title>
 <style>
 :root{--bg:#fdf6f0;--card:#fff;--tx:#2b2430;--mut:#7a707f;--ok:#2e9e6b;--no:#d9534f;--ac:#7b5ea7;--bd:#eadfd6}
@@ -81,6 +81,13 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-a
 .pill{display:inline-flex;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:2px 4px 2px 10px;font-size:14px}
 .pill button{border:0;background:none;color:var(--mut);font-size:15px;padding:4px 6px}
 #wl .dng+button{border:1px solid var(--bd);background:none;color:var(--tx);border-radius:8px;padding:6px 12px}
+#pb{margin-bottom:22px}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#pk{border:0;border-radius:12px;padding:9px 16px;font-size:15px;font-weight:700;color:#fff;background:#a0724a;white-space:nowrap}
+#pc{font-size:15px;font-weight:600}
+#pk:disabled{opacity:.3}
+#pl{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}
+#pl .dng+button{border:1px solid var(--bd);background:none;color:var(--tx);border-radius:8px;padding:6px 12px}
 </style>
 </head>
 <body>
@@ -102,6 +109,7 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--bg);text-a
 <div class="timer"><div class="clock" id="clk">00:00</div><div class="sub" id="sub"></div></div>
 <div class="btns"><button id="s">▶ Inicio</button><button id="e">■ Fin</button></div>
 <div id="wb"><div class="btns2"><button id="wk">🌙 Despertar</button><button id="ws">😴 Dormir</button></div><div class="sub" id="wc"></div><div id="wl"></div><button class="lnk" id="wadd">＋ Añadir despertar</button></div>
+<div id="pb"><div class="prow"><div id="pc"></div><button id="pk">💩 Caca</button></div><div id="pl"></div></div>
 <h2>Historial</h2>
 <div class="bar"><button id="fb">Todos los días ▾</button><button id="ex">Exportar</button><button id="ad">＋ Toma</button></div>
 <div id="fp" hidden></div>
@@ -135,7 +143,7 @@ const API=`https://api.github.com/repos/${REPO}/contents/${FILE}`;
 const $=id=>document.getElementById(id);
 const p2=n=>String(n).padStart(2,'0');
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
-const norm=d=>{d=d||{};return{babies:d.babies||[],feeds:d.feeds||[],active:d.active||{},wakes:d.wakes||[]};};
+const norm=d=>{d=d||{};return{babies:d.babies||[],feeds:d.feeds||[],active:d.active||{},wakes:d.wakes||[],poops:d.poops||[]};};
 let S;try{S=norm(JSON.parse(ls.get('tomas-cache-v2')))}catch(e){S=norm()}
 let sel=ls.get('tomas-sel')||null,TOKEN=ls.get('tomas-token')||'',busy=false,pend=null,delC=false,preset='all',FD=new Set();
 const mk=(t,x,f,c)=>{const e=document.createElement(t);if(x)e.textContent=x;if(f)e.onclick=f;if(c)e.className=c;return e;};
@@ -218,11 +226,22 @@ function render(){
    const ac=mk('div',null,null,'acts'),be=mk('button','✎',()=>openEf(w,'wake')),bx=mk('button','✕',()=>{wpend=w.id;render();});
    be.setAttribute('aria-label','Editar');bx.setAttribute('aria-label','Borrar');ac.append(be,bx);r.append(i,ac);}
   WL.appendChild(r);});
+ $('pk').disabled=!sel;
+ const PL=$('pl');PL.innerHTML='';
+ const rp=S.poops.filter(x=>x.baby===sel&&x.t>=Date.now()-864e5).sort((x,y)=>y.t-x.t);
+ const lp=S.poops.filter(x=>x.baby===sel).reduce((m,x)=>Math.max(m,x.t),0);
+ const nd=lp?Math.round((new Date().setHours(0,0,0,0)-new Date(lp).setHours(0,0,0,0))/864e5):0;
+ $('pc').textContent=!sel?'':!lp?'Sin registros':nd===0?'Hoy ya hizo ✓':nd===1?'1 día sin caca':`${nd} días sin caca`;
+ rp.forEach(x=>{
+  if(ppend===x.id)PL.append(mk('span',`¿Borrar ${ft(x.t)}?`),
+   mk('button','Borrar',()=>{ppend=null;mutate(d=>{d.poops=d.poops.filter(y=>y.id!==x.id);},'Borrar caca');},'dng'),
+   mk('button','No',()=>{ppend=null;render();}));
+  else{const pl=mk('span',null,null,'pill'),bx=mk('button','✕',()=>{ppend=x.id;render();});bx.setAttribute('aria-label','Borrar');pl.append('💩 '+ft(x.t)+' ',bx);PL.append(pl);}});
  $('sub').textContent=!sel?'Añade un bebé para empezar':a?`Inicio: ${fd(a)} ${ft(a)}`:'Listo para empezar';
  const D=$('db');D.innerHTML='';D.hidden=!sel;
  if(sel){const id=sel,nm=S.babies.find(b=>b.id===id).name;
   if(delC)D.append(mk('span',`¿Eliminar a ${nm} y todas sus tomas?`),
-   mk('button','Sí, eliminar',()=>{delC=false;mutate(d=>{d.babies=d.babies.filter(b=>b.id!==id);d.feeds=d.feeds.filter(f=>f.baby!==id);d.wakes=d.wakes.filter(w=>w.baby!==id);delete d.active[id];},'Eliminar bebé');},'dng'),
+   mk('button','Sí, eliminar',()=>{delC=false;mutate(d=>{d.babies=d.babies.filter(b=>b.id!==id);d.feeds=d.feeds.filter(f=>f.baby!==id);d.wakes=d.wakes.filter(w=>w.baby!==id);d.poops=d.poops.filter(x=>x.baby!==id);delete d.active[id];},'Eliminar bebé');},'dng'),
    mk('button','Cancelar',()=>{delC=false;render();}));
   else D.append(mk('button','Eliminar este bebé',()=>{delC=true;render();},'lnk'));}
  tick();
@@ -303,7 +322,7 @@ const tab=n=>{$('v1').hidden=n!==1;$('v2').hidden=n!==2;$('t1').className=n===1?
 $('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
 
 // ---- Despertares nocturnos ----
-let wpend=null;
+let wpend=null,ppend=null;
 function wakeChart(days){
  const by={};
  S.wakes.filter(w=>w.baby===sel&&w.t>=since(NR-1)).forEach(w=>{const k=ck(w.t);by[k]=(by[k]||0)+1;});
@@ -320,6 +339,8 @@ function wakeChart(days){
 }
 $('wk').onclick=()=>{const id=sel,t=Date.now();mutate(d=>{if(!d.wakes.some(w=>w.baby===id&&w.e===null))d.wakes.push({id:'w'+t+Math.random().toString(36).slice(2,5),baby:id,t,e:null});},'Despertar');};
 $('ws').onclick=()=>{const id=sel,t=Date.now();mutate(d=>{const w=d.wakes.filter(x=>x.baby===id&&x.e===null).sort((x,y)=>y.t-x.t)[0];if(w)w.e=t;},'Dormir');};
+
+$('pk').onclick=()=>{const id=sel,t=Date.now();mutate(d=>{d.poops.push({id:'p'+t+Math.random().toString(36).slice(2,5),baby:id,t});},'Caca');};
 
 // ---- Editar / añadir tomas ----
 let editId=null,efKind='feed';
